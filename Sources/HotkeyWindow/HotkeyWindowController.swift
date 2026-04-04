@@ -2,6 +2,7 @@ import Foundation
 import Cocoa
 import SwiftUI
 import OSLog
+import Bonsplit
 
 /// Controller for the hotkey window — a dropdown/floating terminal that toggles
 /// with a global keyboard shortcut.
@@ -67,8 +68,15 @@ final class HotkeyWindowController: NSObject, NSWindowDelegate {
     // MARK: - Animate In
 
     private func animateIn() {
-        guard !visible else { return }
-        Self.logger.info("animateIn: starting")
+        guard !visible else {
+            #if DEBUG
+            DebugEventLog.shared.log("hotkeyWindow.animateIn SKIP already visible")
+            #endif
+            return
+        }
+        #if DEBUG
+        DebugEventLog.shared.log("hotkeyWindow.animateIn starting window=\(window != nil)")
+        #endif
         visible = true
         lastAnimateInTime = Date()
 
@@ -87,10 +95,23 @@ final class HotkeyWindowController: NSObject, NSWindowDelegate {
             createWindow()
         }
 
-        guard let window = self.window else { return }
+        guard let window = self.window else {
+            #if DEBUG
+            DebugEventLog.shared.log("hotkeyWindow.animateIn FAIL no window after createWindow")
+            #endif
+            return
+        }
 
         let settings = self.currentSettings()
-        guard let screen = settings.screen.screen else { return }
+        guard let screen = settings.screen.screen else {
+            #if DEBUG
+            DebugEventLog.shared.log("hotkeyWindow.animateIn FAIL no screen")
+            #endif
+            return
+        }
+        #if DEBUG
+        DebugEventLog.shared.log("hotkeyWindow.animateIn screen=\(screen.frame) position=\(settings.position) size=\(settings.size.primary)")
+        #endif
 
         let closedFrame = screenStateCache.frame(for: screen)
 
@@ -99,80 +120,24 @@ final class HotkeyWindowController: NSObject, NSWindowDelegate {
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         }
 
-        // Move window to initial (off-screen) position
-        settings.position.setInitial(
+        // Set window to final position directly (no animation for now — debug)
+        window.alphaValue = 1
+        settings.position.setFinal(
             in: window,
             on: screen,
             size: settings.size,
             closedFrame: closedFrame)
 
         // Set window level
-        if settings.floating {
-            window.level = .screenSaver
-        } else {
-            window.level = .popUpMenu
-        }
+        window.level = .floating
 
-        // Show the window
-        if settings.floating {
-            window.makeKeyAndOrderFront(nil)
-        } else {
-            DispatchQueue.main.async {
-                window.makeKeyAndOrderFront(nil)
-            }
-        }
+        // Show and focus
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
 
-        // Handle dock conflicts
-        if settings.position.conflictsWithDock(on: screen) {
-            if hiddenDock == nil {
-                hiddenDock = .init()
-            }
-            hiddenDock?.hide()
-        } else {
-            hiddenDock = nil
-        }
-
-        // Animate to final position
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = settings.animationDuration
-            context.timingFunction = .init(name: .easeIn)
-            settings.position.setFinal(
-                in: window.animator(),
-                on: screen,
-                size: settings.size,
-                closedFrame: closedFrame)
-        }, completionHandler: {
-            DispatchQueue.main.async { [self] in
-                guard visible else {
-                    hiddenDock = nil
-                    return
-                }
-
-                // Set final window level
-                if settings.floating {
-                    window.level = .screenSaver
-                } else {
-                    window.level = .floating
-                }
-
-                // Focus the window
-                window.makeKeyAndOrderFront(nil)
-
-                // For floating mode: don't activate the app (panel handles keyboard input)
-                // For non-floating: activate for proper focus
-                if settings.floating {
-                    if !window.isKeyWindow {
-                        makeWindowKey(window, retries: 10)
-                    }
-                } else if !NSApp.isActive {
-                    NSApp.activate(ignoringOtherApps: true)
-                    DispatchQueue.main.async {
-                        guard !window.isKeyWindow else { return }
-                        self.makeWindowKey(window, retries: 10)
-                    }
-                }
-            }
-        })
+#if DEBUG
+        DebugEventLog.shared.log("hotkeyWindow.animateIn SHOWN frame=\(window.frame) isVisible=\(window.isVisible) isKey=\(window.isKeyWindow)")
+#endif
     }
 
     // MARK: - Animate Out
@@ -180,7 +145,9 @@ final class HotkeyWindowController: NSObject, NSWindowDelegate {
     func animateOut() {
         guard visible else { return }
         guard let window = self.window else { return }
-        Self.logger.info("animateOut: starting")
+#if DEBUG
+        DebugEventLog.shared.log("hotkeyWindow.animateOut starting")
+#endif
         visible = false
 
         let settings = currentSettings()
@@ -238,10 +205,14 @@ final class HotkeyWindowController: NSObject, NSWindowDelegate {
 
         let settings = currentSettings()
 
-        // Floating mode grace period
-        if settings.floating,
-           let animateTime = lastAnimateInTime,
+        // Grace period: ignore resignKey within 1s of showing.
+        // The window may lose focus immediately after appearing because
+        // the main window or another app reclaims focus before the animation completes.
+        if let animateTime = lastAnimateInTime,
            Date().timeIntervalSince(animateTime) < 1.0 {
+#if DEBUG
+            DebugEventLog.shared.log("hotkeyWindow.windowDidResignKey grace period, ignoring")
+#endif
             return
         }
 

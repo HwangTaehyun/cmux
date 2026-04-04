@@ -92,6 +92,7 @@ final class WindowToolbarController: NSObject, NSToolbarDelegate {
         if !isMinimal {
             DispatchQueue.main.async {
                 for window in NSApp.windows {
+                    guard !(window is HotkeyWindow) else { continue }
                     for accessory in window.titlebarAccessoryViewControllers {
                         if !accessory.isHidden {
                             accessory.view.needsLayout = true

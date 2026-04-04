@@ -3049,6 +3049,7 @@ struct ContentView: View {
         })
 
         view = AnyView(view.background(WindowAccessor(dedupeByWindow: false) { window in
+            guard !(window is HotkeyWindow) else { return }
             MainActor.assumeIsolated {
                 let tmuxOverlayController = tmuxWorkspacePaneWindowOverlayController(for: window)
                 tmuxOverlayController.update(state: tmuxWorkspacePaneWindowOverlayState(for: window))
@@ -3150,6 +3151,7 @@ struct ContentView: View {
         })
 
         view = AnyView(view.background(WindowAccessor { [sidebarBlendMode, bgGlassEnabled, bgGlassTintHex, bgGlassTintOpacity] window in
+            guard !(window is HotkeyWindow) else { return }
             window.identifier = NSUserInterfaceItemIdentifier(windowIdentifier)
             window.titlebarAppearsTransparent = true
             // Keep window immovable; the sidebar's WindowDragHandleView handles
@@ -3474,6 +3476,7 @@ struct ContentView: View {
     }
 
     private func setTitlebarControlsHidden(_ hidden: Bool, in window: NSWindow) {
+        guard !(window is HotkeyWindow) else { return }
         let controlsId = NSUserInterfaceItemIdentifier("cmux.titlebarControls")
         for accessory in window.titlebarAccessoryViewControllers {
             if accessory.view.identifier == controlsId {
@@ -8859,6 +8862,7 @@ struct VerticalTabsSidebar: View {
         }
         .background(
             WindowAccessor { window in
+                guard !(window is HotkeyWindow) else { return }
                 modifierKeyMonitor.setHostWindow(window)
             }
             .frame(width: 0, height: 0)
@@ -13966,6 +13970,8 @@ private struct TitlebarLeadingInsetReader: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {
         DispatchQueue.main.async {
             guard let window = nsView.window else { return }
+            // HotkeyWindow has no titlebar — skip accessory measurement
+            guard !(window is HotkeyWindow) else { return }
             // Start past the traffic lights
             var leading: CGFloat = 78
             // Add width of all left-aligned titlebar accessories

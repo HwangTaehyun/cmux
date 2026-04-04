@@ -170,7 +170,7 @@ private func globalMatchShortcut(event: NSEvent, shortcut: StoredShortcut) -> Bo
 
     // ANSI keyCode fallback for command-modified shortcuts
     if flags.contains(.command) || flags.contains(.control) {
-        if let expectedKeyCode = ansiKeyCode(for: shortcutKey) {
+        if let expectedKeyCode = globalMatchAnsiKeyCode(for: shortcutKey) {
             return event.keyCode == expectedKeyCode
         }
     }
@@ -179,7 +179,7 @@ private func globalMatchShortcut(event: NSEvent, shortcut: StoredShortcut) -> Bo
 }
 
 /// Map a shortcut key string to its ANSI key code.
-private func ansiKeyCode(for key: String) -> UInt16? {
+func globalMatchAnsiKeyCode(for key: String) -> UInt16? {
     switch key {
     case "a": return 0;   case "s": return 1;   case "d": return 2
     case "f": return 3;   case "h": return 4;   case "g": return 5

@@ -202,7 +202,7 @@ enum KeyboardShortcutSettings {
             case .toggleReactGrab:
                 return StoredShortcut(key: "g", command: true, shift: true, option: false, control: false)
             case .toggleHotkeyWindow:
-                return StoredShortcut(key: "x", command: true, shift: true, option: false, control: false)
+                return StoredShortcut(key: "z", command: true, shift: true, option: false, control: false)
             }
         }
 
