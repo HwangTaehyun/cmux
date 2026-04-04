@@ -1,6 +1,7 @@
 import Cocoa
 import CoreGraphics
 import OSLog
+import Bonsplit
 
 /// Manages a system-wide CGEvent tap for global keyboard shortcut interception.
 /// Used to detect the hotkey window toggle shortcut even when cmux is not focused.
@@ -61,6 +62,8 @@ class GlobalEventTap {
         let eventMask = [CGEventType.keyDown]
             .reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
 
+        let trusted = AXIsProcessTrusted()
+        globalTapLog("[GlobalTap] tryEnable AXIsProcessTrusted=\(trusted)")
         guard let eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -69,7 +72,7 @@ class GlobalEventTap {
             callback: globalEventTapCallback,
             userInfo: nil
         ) else {
-            Self.logger.debug("creating global event tap failed, missing permissions?")
+            globalTapLog("[GlobalTap] FAILED to create tap, trusted=\(trusted)")
             return false
         }
 
@@ -86,8 +89,23 @@ class GlobalEventTap {
             .commonModes
         )
 
+        globalTapLog("[GlobalTap] SUCCESS - event tap enabled")
         Self.logger.info("global event tap enabled for hotkey window")
         return true
+    }
+}
+
+// File-based logger for the C callback (can't use dlog from C context)
+private func globalTapLog(_ msg: String) {
+    let ts = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .medium)
+    let line = "[\(ts)] \(msg)\n"
+    let path = "/tmp/cmux-globaltap-debug.log"
+    if let handle = FileHandle(forWritingAtPath: path) {
+        handle.seekToEndOfFile()
+        handle.write(line.data(using: .utf8)!)
+        handle.closeFile()
+    } else {
+        FileManager.default.createFile(atPath: path, contents: line.data(using: .utf8))
     }
 }
 
@@ -122,14 +140,24 @@ private func globalEventTapCallback(
     // Create NSEvent for matching
     guard let event: NSEvent = .init(cgEvent: cgEvent) else { return result }
 
+    // Log all Cmd+Shift key events for debugging
+    let mods = event.modifierFlags.intersection([.command, .shift, .option, .control])
+    if mods.contains(.command) && mods.contains(.shift) {
+        globalTapLog("[GlobalTap] CMD+SHIFT key=\(event.keyCode) chars=\(event.charactersIgnoringModifiers ?? "nil")")
+    }
+
     // Get the configured hotkey shortcut
     let shortcut = KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)
 
     // Match the shortcut
     if globalMatchShortcut(event: event, shortcut: shortcut) {
-        GlobalEventTap.logger.info("hotkey window toggle matched, dispatching")
+        globalTapLog("[GlobalTap] MATCHED! dispatching toggle, isActive=\(NSApp.isActive)")
         DispatchQueue.main.async {
-            (NSApplication.shared.delegate as? AppDelegate)?.hotkeyWindowController?.toggle()
+            guard let controller = AppDelegate.shared?.hotkeyWindowController else {
+                globalTapLog("[GlobalTap] ERROR: no controller, shared=\(AppDelegate.shared != nil)")
+                return
+            }
+            controller.toggle()
         }
         return nil // Consume the event
     }

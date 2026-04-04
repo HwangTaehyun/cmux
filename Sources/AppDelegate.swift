@@ -12743,6 +12743,11 @@ private extension NSApplication {
             let shortcut = KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)
             let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
                 .subtracting([.numericPad, .function, .capsLock])
+#if DEBUG
+            if flags.contains(.command) && flags.contains(.shift) {
+                dlog("hotkeyWindow.SEND_EVENT_ALL_CMD_SHIFT keyCode=\(event.keyCode) chars=\(event.charactersIgnoringModifiers ?? "nil") shortcutKey=\(shortcut.key) flagsMatch=\(flags == shortcut.modifierFlags) flags=\(flags.rawValue) expected=\(shortcut.modifierFlags.rawValue)")
+            }
+#endif
             if flags == shortcut.modifierFlags {
                 let shortcutKey = shortcut.key.lowercased()
                 let matched: Bool = {

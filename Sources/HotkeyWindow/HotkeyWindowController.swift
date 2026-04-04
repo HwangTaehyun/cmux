@@ -115,25 +115,18 @@ final class HotkeyWindowController: NSObject, NSWindowDelegate {
 
         let closedFrame = screenStateCache.frame(for: screen)
 
-        // For floating mode, set collection behavior BEFORE showing
-        if settings.floating {
-            window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
-        }
+        // Always float above other apps and join all spaces
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
 
-        // Set window to final position directly (no animation for now — debug)
+        // Full screen on the target screen
         window.alphaValue = 1
-        settings.position.setFinal(
-            in: window,
-            on: screen,
-            size: settings.size,
-            closedFrame: closedFrame)
+        window.setFrame(screen.frame, display: true)
 
-        // Set window level
-        window.level = .floating
+        // Screen-saver level to appear above fullscreen apps
+        window.level = .screenSaver
 
-        // Show and focus
+        // Show and focus without activating the app (NSPanel handles keyboard input)
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
 
 #if DEBUG
         DebugEventLog.shared.log("hotkeyWindow.animateIn SHOWN frame=\(window.frame) isVisible=\(window.isVisible) isKey=\(window.isKeyWindow)")
