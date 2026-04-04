@@ -2206,6 +2206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var browserAddressBarFocusObserver: NSObjectProtocol?
     private var browserAddressBarBlurObserver: NSObjectProtocol?
     private let updateController = UpdateController()
+    private(set) var hotkeyWindowController: HotkeyWindowController?
     private lazy var titlebarAccessoryController = UpdateTitlebarAccessoryController(viewModel: updateViewModel)
     private let windowDecorationsController = WindowDecorationsController()
     private var menuBarExtraController: MenuBarExtraController?
@@ -2534,6 +2535,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         installBrowserAddressBarFocusObservers()
         installShortcutMonitor()
         installShortcutDefaultsObserver()
+        setupHotkeyWindow()
         NSApp.servicesProvider = self
 #if DEBUG
         UpdateTestSupport.applyIfNeeded(to: updateController.viewModel)
@@ -9169,6 +9171,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
     }
 
+    // MARK: - Hotkey Window
+
+    private func setupHotkeyWindow() {
+        guard HotkeyWindowSettings.isEnabled else { return }
+        hotkeyWindowController = HotkeyWindowController()
+        GlobalEventTap.shared.enable()
+    }
+
     private func installShortcutDefaultsObserver() {
         guard shortcutDefaultsObserver == nil else { return }
         shortcutDefaultsObserver = NotificationCenter.default.addObserver(
@@ -9762,6 +9772,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // address bar is focused. Without this, app-level Cmd+N can steal focus.
         if shouldBypassAppShortcutForFocusedBrowserAddressBar(flags: flags, chars: chars) {
             return false
+        }
+
+        // Hotkey window toggle (local fallback when app is active or Accessibility is not granted)
+        if matchShortcut(event: event, shortcut: KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)) {
+            hotkeyWindowController?.toggle()
+            return true
         }
 
         // Primary UI shortcuts

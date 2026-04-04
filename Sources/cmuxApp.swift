@@ -147,6 +147,7 @@ struct cmuxApp: App {
     @AppStorage(DevBuildBannerDebugSettings.sidebarBannerVisibleKey)
     private var showSidebarDevBuildBanner = DevBuildBannerDebugSettings.defaultShowSidebarBanner
     @AppStorage(SocketControlSettings.appStorageKey) private var socketControlMode = SocketControlSettings.defaultMode.rawValue
+    @AppStorage(KeyboardShortcutSettings.Action.toggleHotkeyWindow.defaultsKey) private var toggleHotkeyWindowShortcutData = Data()
     @AppStorage(KeyboardShortcutSettings.Action.toggleSidebar.defaultsKey) private var toggleSidebarShortcutData = Data()
     @AppStorage(KeyboardShortcutSettings.Action.newTab.defaultsKey) private var newWorkspaceShortcutData = Data()
     @AppStorage(KeyboardShortcutSettings.Action.newWindow.defaultsKey) private var newWindowShortcutData = Data()
@@ -695,6 +696,10 @@ struct cmuxApp: App {
                     }
                 }
 
+                splitCommandButton(title: String(localized: "menu.view.toggleHotkeyWindow", defaultValue: "Toggle Hotkey Window"), shortcut: toggleHotkeyWindowMenuShortcut) {
+                    appDelegate.hotkeyWindowController?.toggle()
+                }
+
                 Divider()
 
                 splitCommandButton(title: String(localized: "menu.view.nextSurface", defaultValue: "Next Surface"), shortcut: nextSurfaceMenuShortcut) {
@@ -867,6 +872,10 @@ struct cmuxApp: App {
 
     private var splitRightMenuShortcut: StoredShortcut {
         decodeShortcut(from: splitRightShortcutData, fallback: KeyboardShortcutSettings.Action.splitRight.defaultShortcut)
+    }
+
+    private var toggleHotkeyWindowMenuShortcut: StoredShortcut {
+        decodeShortcut(from: toggleHotkeyWindowShortcutData, fallback: KeyboardShortcutSettings.Action.toggleHotkeyWindow.defaultShortcut)
     }
 
     private var toggleSidebarMenuShortcut: StoredShortcut {

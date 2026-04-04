@@ -131,6 +131,18 @@
 					8C4BBF2DEF6DF93F395A9EE7 /* TerminalControllerSocketSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491751CE2321474474F27DCF /* TerminalControllerSocketSecurityTests.swift */; };
 					2BB56A710BB1FC50367E5BCF /* TabManagerSessionSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10D684CFFB8CDEF89CE2D9E1 /* TabManagerSessionSnapshotTests.swift */; };
 					C1A2B3C4D5E6F70800000001 /* CmuxConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4D5E6F70800000002 /* CmuxConfigTests.swift */; };
+		6FBD332936D39E8877D1D841 /* HotkeyWindowPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499B71724B802319FFB8736D /* HotkeyWindowPosition.swift */; };
+		EBF8E1FE118F21C026E0EAAE /* HotkeyWindowSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899407FE56CD3B50496A9BBD /* HotkeyWindowSize.swift */; };
+		09D2647BB48A046CAD2D34CB /* HotkeyWindowSpaceBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FDFD19BFCC1749515CFC20F /* HotkeyWindowSpaceBehavior.swift */; };
+		A880F819A804636550BD2113 /* HotkeyWindowScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0729EC4525D606154CE4EC2 /* HotkeyWindowScreen.swift */; };
+		DFE4F1419B1F611089FCF90A /* HotkeyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7249EB92EDB602D6C1DE204A /* HotkeyWindow.swift */; };
+		2C6C71B2BFA613FF254F09DB /* HotkeyWindowScreenStateCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B7300C46ED3ECD7F1D5834 /* HotkeyWindowScreenStateCache.swift */; };
+		7A06A0AA08D96FCAD1166BFD /* HotkeyWindowSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54AC9733468A3C50D7B2D19 /* HotkeyWindowSettings.swift */; };
+		9EAAED059DF1E38F375D2250 /* Dock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F0417AB82C103E3B7C0CF98 /* Dock.swift */; };
+		5D3CF50DDA4F446C9286B464 /* CGSSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F4B1F3ABA94D840F80FD2B /* CGSSpace.swift */; };
+		D8F765BC241A60F18E02E642 /* NSScreen+HotkeyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5111E09E7083279C8C8553F /* NSScreen+HotkeyWindow.swift */; };
+		254F63CD32241C91FA47CBA2 /* HotkeyWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A242C3EA336FF116E662D027 /* HotkeyWindowController.swift */; };
+		7AE39902D92D0E270FED0224 /* GlobalEventTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 743B20DEAEF966C5F974CBA8 /* GlobalEventTap.swift */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -326,6 +338,18 @@
 				491751CE2321474474F27DCF /* TerminalControllerSocketSecurityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalControllerSocketSecurityTests.swift; sourceTree = "<group>"; };
 				10D684CFFB8CDEF89CE2D9E1 /* TabManagerSessionSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerSessionSnapshotTests.swift; sourceTree = "<group>"; };
 				C1A2B3C4D5E6F70800000002 /* CmuxConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CmuxConfigTests.swift; sourceTree = "<group>"; };
+		499B71724B802319FFB8736D /* HotkeyWindowPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowPosition.swift; sourceTree = "<group>"; };
+		899407FE56CD3B50496A9BBD /* HotkeyWindowSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowSize.swift; sourceTree = "<group>"; };
+		3FDFD19BFCC1749515CFC20F /* HotkeyWindowSpaceBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowSpaceBehavior.swift; sourceTree = "<group>"; };
+		E0729EC4525D606154CE4EC2 /* HotkeyWindowScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowScreen.swift; sourceTree = "<group>"; };
+		7249EB92EDB602D6C1DE204A /* HotkeyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindow.swift; sourceTree = "<group>"; };
+		A9B7300C46ED3ECD7F1D5834 /* HotkeyWindowScreenStateCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowScreenStateCache.swift; sourceTree = "<group>"; };
+		D54AC9733468A3C50D7B2D19 /* HotkeyWindowSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowSettings.swift; sourceTree = "<group>"; };
+		1F0417AB82C103E3B7C0CF98 /* Dock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dock.swift; sourceTree = "<group>"; };
+		14F4B1F3ABA94D840F80FD2B /* CGSSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGSSpace.swift; sourceTree = "<group>"; };
+		C5111E09E7083279C8C8553F /* NSScreen+HotkeyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSScreen+HotkeyWindow.swift"; sourceTree = "<group>"; };
+		A242C3EA336FF116E662D027 /* HotkeyWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyWindowController.swift; sourceTree = "<group>"; };
+		743B20DEAEF966C5F974CBA8 /* GlobalEventTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalEventTap.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -511,6 +535,7 @@
 				A5001651 /* CmuxConfig.swift */,
 				A5001653 /* CmuxConfigExecutor.swift */,
 				A5001655 /* CmuxDirectoryTrust.swift */,
+				HKWG0001 /* HotkeyWindow */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -607,6 +632,25 @@
 				path = cmuxTests;
 				sourceTree = "<group>";
 			};
+		HKWG0001 /* HotkeyWindow */ = {
+			isa = PBXGroup;
+			children = (
+				499B71724B802319FFB8736D /* HotkeyWindowPosition.swift */,
+				899407FE56CD3B50496A9BBD /* HotkeyWindowSize.swift */,
+				3FDFD19BFCC1749515CFC20F /* HotkeyWindowSpaceBehavior.swift */,
+				E0729EC4525D606154CE4EC2 /* HotkeyWindowScreen.swift */,
+				7249EB92EDB602D6C1DE204A /* HotkeyWindow.swift */,
+				A9B7300C46ED3ECD7F1D5834 /* HotkeyWindowScreenStateCache.swift */,
+				D54AC9733468A3C50D7B2D19 /* HotkeyWindowSettings.swift */,
+				1F0417AB82C103E3B7C0CF98 /* Dock.swift */,
+				14F4B1F3ABA94D840F80FD2B /* CGSSpace.swift */,
+				C5111E09E7083279C8C8553F /* NSScreen+HotkeyWindow.swift */,
+				A242C3EA336FF116E662D027 /* HotkeyWindowController.swift */,
+				743B20DEAEF966C5F974CBA8 /* GlobalEventTap.swift */,
+			);
+			path = HotkeyWindow;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -833,6 +877,18 @@
 				A5001650 /* CmuxConfig.swift in Sources */,
 			A5001652 /* CmuxConfigExecutor.swift in Sources */,
 			A5001654 /* CmuxDirectoryTrust.swift in Sources */,
+			6FBD332936D39E8877D1D841 /* HotkeyWindowPosition.swift in Sources */,
+			EBF8E1FE118F21C026E0EAAE /* HotkeyWindowSize.swift in Sources */,
+			09D2647BB48A046CAD2D34CB /* HotkeyWindowSpaceBehavior.swift in Sources */,
+			A880F819A804636550BD2113 /* HotkeyWindowScreen.swift in Sources */,
+			DFE4F1419B1F611089FCF90A /* HotkeyWindow.swift in Sources */,
+			2C6C71B2BFA613FF254F09DB /* HotkeyWindowScreenStateCache.swift in Sources */,
+			7A06A0AA08D96FCAD1166BFD /* HotkeyWindowSettings.swift in Sources */,
+			9EAAED059DF1E38F375D2250 /* Dock.swift in Sources */,
+			5D3CF50DDA4F446C9286B464 /* CGSSpace.swift in Sources */,
+			D8F765BC241A60F18E02E642 /* NSScreen+HotkeyWindow.swift in Sources */,
+			254F63CD32241C91FA47CBA2 /* HotkeyWindowController.swift in Sources */,
+			7AE39902D92D0E270FED0224 /* GlobalEventTap.swift in Sources */,
 		);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
