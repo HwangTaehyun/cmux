@@ -2,16 +2,12 @@ import Cocoa
 
 /// NSScreen extensions for hotkey window positioning.
 /// Ported from ghostty's NSScreen+Extension.
+/// Note: `displayID` is already declared in GhosttyTerminalView.swift (private extension).
 extension NSScreen {
-    /// The unique CoreGraphics display ID for this screen.
-    var displayID: UInt32? {
-        deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32
-    }
-
     /// The stable UUID for this display, suitable for tracking across reconnects.
     var displayUUID: UUID? {
-        guard let displayID = displayID else { return nil }
-        guard let cfuuid = CGDisplayCreateUUIDFromDisplayID(displayID)?.takeRetainedValue() else { return nil }
+        guard let did = deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? UInt32 else { return nil }
+        guard let cfuuid = CGDisplayCreateUUIDFromDisplayID(did)?.takeRetainedValue() else { return nil }
         let uuidString = CFUUIDCreateString(nil, cfuuid) as String? ?? ""
         return UUID(uuidString: uuidString)
     }
