@@ -2206,6 +2206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private var browserAddressBarFocusObserver: NSObjectProtocol?
     private var browserAddressBarBlurObserver: NSObjectProtocol?
     private let updateController = UpdateController()
+    private(set) var hotkeyWindowController: HotkeyWindowController?
     private lazy var titlebarAccessoryController = UpdateTitlebarAccessoryController(viewModel: updateViewModel)
     private let windowDecorationsController = WindowDecorationsController()
     private var menuBarExtraController: MenuBarExtraController?
@@ -2534,6 +2535,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         installBrowserAddressBarFocusObservers()
         installShortcutMonitor()
         installShortcutDefaultsObserver()
+        setupHotkeyWindow()
         NSApp.servicesProvider = self
 #if DEBUG
         UpdateTestSupport.applyIfNeeded(to: updateController.viewModel)
@@ -9032,11 +9034,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #endif
 
     func attachUpdateAccessory(to window: NSWindow) {
+        // HotkeyWindow has no title bar — skip titlebar accessories to avoid crash.
+        if window is HotkeyWindow { return }
         titlebarAccessoryController.start()
         titlebarAccessoryController.attach(to: window)
     }
 
     func applyWindowDecorations(to window: NSWindow) {
+        if window is HotkeyWindow { return }
         windowDecorationsController.apply(to: window)
     }
 
@@ -9102,6 +9107,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Local monitor only receives events when app is active (not global)
         shortcutMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { [weak self] event in
             guard let self else { return event }
+            // Hotkey window: intercept at the very top of the local monitor,
+            // before any other processing, to ensure the event is never consumed.
+            if event.type == .keyDown {
+#if DEBUG
+                let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+                if mods.contains(.command) && mods.contains(.shift) {
+                    let hkShortcut = KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)
+                    dlog("hotkeyWindow.MONITOR_DEBUG keyCode=\(event.keyCode) chars=\(event.charactersIgnoringModifiers ?? "nil") rawChars=\(event.characters ?? "nil") shortcutKey=\(hkShortcut.key) match=\(self.matchShortcut(event: event, shortcut: hkShortcut))")
+                }
+#endif
+            }
+            if event.type == .keyDown,
+               self.matchShortcut(event: event, shortcut: KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)) {
+#if DEBUG
+                dlog("hotkeyWindow.MONITOR_INTERCEPT toggling")
+#endif
+                self.hotkeyWindowController?.toggle()
+                return nil
+            }
             if event.type == .keyDown {
 #if DEBUG
                 let phaseTotalStart = ProcessInfo.processInfo.systemUptime
@@ -9167,6 +9191,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             }
             return event
         }
+    }
+
+    // MARK: - Hotkey Window
+
+    private func setupHotkeyWindow() {
+#if DEBUG
+        dlog("hotkeyWindow.setup isEnabled=\(HotkeyWindowSettings.isEnabled)")
+#endif
+        guard HotkeyWindowSettings.isEnabled else { return }
+        hotkeyWindowController = HotkeyWindowController()
+        GlobalEventTap.shared.enable()
+#if DEBUG
+        dlog("hotkeyWindow.setup controller=\(hotkeyWindowController != nil) tapEnabled")
+#endif
     }
 
     private func installShortcutDefaultsObserver() {
@@ -9392,6 +9430,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     private func handleCustomShortcut(event: NSEvent) -> Bool {
+#if DEBUG
+        if event.modifierFlags.contains(.command) && event.modifierFlags.contains(.shift) {
+            dlog("hotkeyWindow.handleCustomShortcut ENTRY keyCode=\(event.keyCode) chars=\(event.charactersIgnoringModifiers ?? "nil") mods=\(event.modifierFlags.rawValue)")
+        }
+#endif
+        // Hotkey window toggle — checked first to bypass all other shortcut routing.
+        // This must be above close-confirmation, modal, and command-palette checks
+        // so the hotkey works regardless of app state.
+        if matchShortcut(event: event, shortcut: KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)) {
+#if DEBUG
+            dlog("hotkeyWindow.MATCHED toggling from handleCustomShortcut top")
+#endif
+            hotkeyWindowController?.toggle()
+            return true
+        }
+
         // `charactersIgnoringModifiers` can be nil for some synthetic NSEvents and certain special keys.
         // Treat nil as "" and rely on keyCode/layout-aware fallback logic where needed.
         // When a non-Latin input source is active (Korean, Chinese, Japanese, etc.),
@@ -12683,6 +12737,40 @@ private extension NSApplication {
             }
         }
 #endif
+        // Hotkey window: intercept before event dispatch so ghostty's
+        // performKeyEquivalent can't consume the event first.
+        if event.type == .keyDown {
+            let shortcut = KeyboardShortcutSettings.shortcut(for: .toggleHotkeyWindow)
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+                .subtracting([.numericPad, .function, .capsLock])
+#if DEBUG
+            if flags.contains(.command) && flags.contains(.shift) {
+                dlog("hotkeyWindow.SEND_EVENT_ALL_CMD_SHIFT keyCode=\(event.keyCode) chars=\(event.charactersIgnoringModifiers ?? "nil") shortcutKey=\(shortcut.key) flagsMatch=\(flags == shortcut.modifierFlags) flags=\(flags.rawValue) expected=\(shortcut.modifierFlags.rawValue)")
+            }
+#endif
+            if flags == shortcut.modifierFlags {
+                let shortcutKey = shortcut.key.lowercased()
+                let matched: Bool = {
+                    // Direct character match
+                    if let chars = event.charactersIgnoringModifiers?.lowercased(),
+                       !chars.isEmpty, chars == shortcutKey { return true }
+                    // Keyboard layout fallback (non-Latin input)
+                    if let layoutChar = KeyboardLayout.character(forKeyCode: event.keyCode, modifierFlags: event.modifierFlags),
+                       !layoutChar.isEmpty, layoutChar.lowercased() == shortcutKey { return true }
+                    // ANSI keyCode fallback
+                    if let expected = globalMatchAnsiKeyCode(for: shortcutKey),
+                       event.keyCode == expected { return true }
+                    return false
+                }()
+                if matched {
+#if DEBUG
+                    dlog("hotkeyWindow.SEND_EVENT_INTERCEPT toggling keyCode=\(event.keyCode)")
+#endif
+                    AppDelegate.shared?.hotkeyWindowController?.toggle()
+                    return // Don't forward the event
+                }
+            }
+        }
         cmux_applicationSendEvent(event)
     }
 }

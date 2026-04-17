@@ -1335,6 +1335,7 @@ final class UpdateTitlebarAccessoryController {
     }
 
     private func attachIfNeeded(to window: NSWindow) {
+        guard !(window is HotkeyWindow) else { return }
         guard !isSettingsWindow(window) else { return }
 
         // Window identifiers are assigned by SwiftUI via WindowAccessor, which can run
